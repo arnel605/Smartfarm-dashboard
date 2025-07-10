@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartFarm Sagay Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+    }
+    .header {
+      background: #2f4f4f;
+      color: white;
+      padding: 15px;
+      position: sticky;
+      top: 0;
+      z-index: 999;
+    }
+    .card-icon {
+      font-size: 24px;
+      margin-right: 10px;
+    }
+    .sensor-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer {
+      text-align: center;
+      padding: 10px;
+      font-size: 14px;
+      color: #999;
+      background: #fff;
+    }
+    .sidebar {
+      background: #354545;
+      min-height: 100vh;
+      color: #fff;
+    }
+    .sidebar a {
+      display: block;
+      color: white;
+      padding: 12px 20px;
+      text-decoration: none;
+    }
+    .sidebar a:hover {
+      background: #4a5c5c;
+    }
+    .active-section {
+      display: block;
+    }
+    .hidden-section {
+      display: none;
+    }
+    .scan-btn {
+      margin-top: 10px;
+    }
+    video {
+      width: 100%;
+      border-radius: 5px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="d-flex">
+    <!-- Sidebar -->
+    <div class="sidebar d-none d-md-block p-3">
+      <h4 class="mb-4">SmartFarm</h4>
+      <a href="#" onclick="showSection('dashboard')"><i class="fas fa-tachometer-alt me-2"></i>Dashboard</a>
+      <a href="#" onclick="showSection('sensors')"><i class="fas fa-seedling me-2"></i>Sensor Overview</a>
+      <a href="#" onclick="showSection('pestLogs')"><i class="fas fa-bug me-2"></i>Pest Logs</a>
+      <a href="#" onclick="showSection('reports')"><i class="fas fa-file-alt me-2"></i>Reports</a>
+      <a href="#" onclick="showSection('settings')"><i class="fas fa-cog me-2"></i>Settings</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-grow-1">
+      <!-- Header -->
+      <div class="header d-flex justify-content-between align-items-center px-3">
+        <div class="fs-4 fw-bold">SmartFarm Sagay</div>
+        <div>
+          <span class="me-4"><i class="fas fa-bell"></i></span>
+          <span><i class="fas fa-user-circle"></i> Admin</span>
+        </div>
+      </div>
+
+      <!-- Sections -->
+      <div id="dashboard" class="container my-4 active-section">
+        <div class="row g-3">
+          <div class="col-md-3 col-sm-6">
+            <div class="card p-3">
+              <div class="sensor-card">
+                <div><i class="fas fa-thermometer-half card-icon text-danger"></i>Temp</div>
+                <div><strong id="tempVal">28.5°C</strong></div>
+              </div>
+              <small class="text-muted">Status: Normal</small>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="card p-3">
+              <div class="sensor-card">
+                <div><i class="fas fa-tint card-icon text-primary"></i>Moisture</div>
+                <div><strong id="moistureVal">58%</strong></div>
+              </div>
+              <small class="text-muted">Status: Normal</small>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="card p-3">
+              <div class="sensor-card">
+                <div><i class="fas fa-wind card-icon text-info"></i>Humidity</div>
+                <div><strong id="humidityVal">60%</strong></div>
+              </div>
+              <small class="text-muted">Status: Normal</small>
+            </div>
+          </div>
+          <div class="col-md-3 col-sm-6">
+            <div class="card p-3">
+              <div class="sensor-card">
+                <div><i class="fas fa-sun card-icon text-warning"></i>Light</div>
+                <div><strong id="lightVal">400 lx</strong></div>
+              </div>
+              <small class="text-muted">Status: Good</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-md-6">
+            <div class="card p-3">
+              <h5><i class="fas fa-bug text-danger"></i> Pest Detection</h5>
+              <p>Status: <span class="text-success">No Pest</span></p>
+              <p>Confidence: 91%</p>
+              <button class="btn btn-danger scan-btn" onclick="startCamera()">Scan for Pests</button>
+              <video id="cameraPreview" autoplay playsinline muted></video>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-3">
+              <h5><i class="fas fa-clock"></i> Detection Logs</h5>
+              <ul class="list-group">
+                <li class="list-group-item">08:30 - No Pest</li>
+                <li class="list-group-item">08:15 - No Pest</li>
+                <li class="list-group-item">08:00 - Pest Detected</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="row mt-4">
+          <div class="col-md-6">
+            <div class="card p-3">
+              <h5>Sensor Trends</h5>
+              <canvas id="sensorChart"></canvas>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card p-3">
+              <h5>Pest Logs</h5>
+              <canvas id="pestChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="footer">&copy; 2025 SmartFarm Sagay</div>
+    </div>
+  </div>
+
+  <script>
+    function showSection(sectionId) {
+      document.querySelectorAll('.container').forEach(el => {
+        el.classList.remove('active-section');
+        el.classList.add('hidden-section');
+      });
+      document.getElementById(sectionId).classList.add('active-section');
+    }
+
+    function startCamera() {
+      const video = document.getElementById('cameraPreview');
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+          .then(function(stream) {
+            video.srcObject = stream;
+            video.play();
+          })
+          .catch(function(error) {
+            alert("Camera access denied or not available.");
+            console.error("Camera error:", error);
+          });
+      }
+    }
+
+    new Chart(document.getElementById('sensorChart'), {
+      type: 'line',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        datasets: [{
+          label: 'Soil Moisture (%)',
+          data: [55, 60, 58, 62, 59],
+          borderColor: 'blue',
+          backgroundColor: 'rgba(0,123,255,0.1)',
+        }]
+      }
+    });
+
+    new Chart(document.getElementById('pestChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+        datasets: [{
+          label: 'Pest Detections',
+          data: [1, 0, 3, 2, 1],
+          backgroundColor: 'rgba(255,0,0,0.6)'
+        }]
+      }
+    });
+  </script>
+</body>
+</html>
